@@ -1,0 +1,25 @@
+{
+  "name": "node-tiny-http",
+  "version": "1.0.0",
+  "description": "A tiny node.js http framework",
+  "main": "build/http.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SegmentFault/node-tiny-http.git"
+  },
+  "keywords": [
+    "http"
+  ],
+  "author": "SegmentFault",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SegmentFault/node-tiny-http/issues"
+  },
+  "homepage": "https://github.com/SegmentFault/node-tiny-http#readme",
+  "dependencies": {
+    "mime": "^1.3.4"
+  }
+}
