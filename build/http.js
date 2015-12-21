@@ -31,13 +31,13 @@
       return Router.register(method, pattern, fn);
     },
     get: function(pattern, fn) {
-      return Router.register('get', pattern, fn);
+      return Router.register('GET', pattern, fn);
     },
     post: function(pattern, fn) {
-      return Router.register('post', pattern, fn);
+      return Router.register('POST', pattern, fn);
     },
     assets: function(path, dir) {
-      return Router.register('get', (path.replace(/\/+$/g, '')) + '/%path', function(params) {
+      return Router.register('GET', (path.replace(/\/+$/g, '')) + '/%path', function(params) {
         return this.file(dir + '/' + (params.path.replace(/\.{2,}/g, '')));
       });
     }

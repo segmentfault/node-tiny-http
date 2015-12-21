@@ -18,14 +18,14 @@ module.exports =
 
     # get method
     get: (pattern, fn) ->
-        Router.register 'get', pattern, fn
+        Router.register 'GET', pattern, fn
 
     # post method
     post: (pattern, fn) ->
-        Router.register 'post', pattern, fn
+        Router.register 'POST', pattern, fn
 
     # static file method
     assets: (path, dir) ->
-        Router.register 'get', (path.replace /\/+$/g, '') + '/%path', (params) ->
+        Router.register 'GET', (path.replace /\/+$/g, '') + '/%path', (params) ->
             @file dir + '/' + (params.path.replace /\.{2,}/g, '')
 
