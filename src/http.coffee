@@ -5,7 +5,7 @@ Router = require './router'
 
 module.exports =
     start: (port = 80, host = 'localhost') ->
-        http = Http.createServer routerHandler
+        http = Http.createServer Router.handler Result.results
         http.listen port, host
 
     rule: Router.registerRule

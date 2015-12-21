@@ -7,8 +7,8 @@ results = {}
 # register response method
 register = (name, fn) ->
     results[name] = (args...) ->
-        (req, res, params) ->
-            fn.apply {req, res, params}, args
+        (req, res) ->
+            fn.apply {req, res}, args
 
 
 # some default result

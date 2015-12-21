@@ -1,4 +1,5 @@
-Url = require 'url'
+Request = require './request'
+Result = require './result'
 
 # routes map
 routes = {}
@@ -85,27 +86,30 @@ register = (method, pattern, fn) ->
 
 
 # handler for http
-handler = (req, res) ->
-    parts = Url.parse req.url, yes
-    uri = if parts.pathname? then parts.pathname else '/'
-    params = parts.query
-    result = null
+handler = (results) ->
 
-    for pattern, def of routes
-        [tester, currentRules, fn] = def
+    (req, res) ->
+        
+        new Request req, (request) ->
+            result = null
+            params = {}
 
-        # deny not matched
-        continue if not tester req.method, uri, params
+            for pattern, def of routes
+                [tester, currentRules, fn] = def
 
-        for rule in currentRuleFunctions
-            result = rule.call results, params, req if rules[rule]?
-            break if result instanceof Function
+                # deny not matched
+                continue if not tester request.method, request.path, params
+                request.set params
 
-        result = fn.call results, params, req if result not instanceof Function
-        break
+                for rule in currentRules
+                    result = rule.call results, request if rules[rule]?
+                    break if result instanceof Function
 
-    result = results.notFound() if not result?
-    result.call null, req, res, params
+                result = fn.call results, request if result not instanceof Function
+                break
+
+            result = results.notFound() if not result?
+            result.call null, request, res
 
 module.exports = { register, registerRule, handler }
 
