@@ -26,6 +26,6 @@ module.exports =
 
     # static file method
     assets: (path, dir) ->
-        Router.register 'GET', (path.replace /\/+$/g, '') + '/%path', (params) ->
-            @file dir + '/' + (params.path.replace /\.{2,}/g, '')
+        Router.register 'GET', (path.replace /\/+$/g, '') + '/%path', (request) ->
+            @file dir + '/' + ((request.get 'path').replace /\.{2,}/g, '')
 

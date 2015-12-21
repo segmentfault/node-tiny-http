@@ -53,7 +53,7 @@
       if (val == null) {
         val = null;
       }
-      if (val === null && key instanceof Array) {
+      if (val === null && key instanceof Object) {
         return mergeParams(key);
       } else {
         return params[key] = val;

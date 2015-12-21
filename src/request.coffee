@@ -39,7 +39,7 @@ class Request
 
     
     set: (key, val = null) ->
-        if val == null and key instanceof Array
+        if val == null and key instanceof Object
             mergeParams key
         else
             params[key] = val
