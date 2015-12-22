@@ -60,7 +60,6 @@ class Response
         
         if content instanceof Function
             content.apply @
-            @res.end() if not @res.finished
         else
             @res.end content
 

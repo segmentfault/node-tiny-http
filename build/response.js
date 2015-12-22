@@ -62,10 +62,7 @@
         this.res.setHeader('Set-Cookie', cookies);
       }
       if (content instanceof Function) {
-        content.apply(this);
-        if (!this.res.finished) {
-          return this.res.end();
-        }
+        return content.apply(this);
       } else {
         return this.res.end(content);
       }
