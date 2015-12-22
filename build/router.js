@@ -74,10 +74,15 @@
           }
           request.set(params);
           (next = function() {
-            var fn;
+            var fn, r;
             index += 1;
             fn = functions[index];
-            return result = fn.call(results, request, response, next);
+            if (fn != null) {
+              r = fn.call(results, request, response, next);
+            }
+            if (r != null) {
+              return result = r;
+            }
           })();
           break;
         }

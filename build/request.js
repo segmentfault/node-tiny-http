@@ -65,11 +65,11 @@
       defaults = ['x-real-ip', 'x-forwarded-for', 'client-ip'];
       if (ip == null) {
         if (options.ipHeader != null) {
-          ip = this.req.header(options.ipHeader, this.req.socket.remoteAddress);
+          ip = this.header(options.ipHeader, this.req.socket.remoteAddress);
         } else {
           for (i = 0, len = defaults.length; i < len; i++) {
             key = defaults[i];
-            val = this.req.header(key);
+            val = this.header(key);
             if (val != null) {
               ip = val;
               break;

@@ -51,6 +51,9 @@ class Response
 
         
         for key, val of headers
+            key = key.replace /(^|-)([a-z])/g, (m, a, b) ->
+                a + b.toUpperCase()
+
             @res.setHeader key, val
 
         @res.setHeader 'Set-Cookie', cookies if cookies.length > 0

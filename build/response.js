@@ -53,6 +53,9 @@
       this.res.statusMessage = Status[statusCode];
       for (key in headers) {
         val = headers[key];
+        key = key.replace(/(^|-)([a-z])/g, function(m, a, b) {
+          return a + b.toUpperCase();
+        });
         this.res.setHeader(key, val);
       }
       if (cookies.length > 0) {

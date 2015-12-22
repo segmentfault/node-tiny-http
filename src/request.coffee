@@ -53,10 +53,10 @@ class Request
 
         if not ip?
             if options.ipHeader?
-                ip = @req.header options.ipHeader, @req.socket.remoteAddress
+                ip = @header options.ipHeader, @req.socket.remoteAddress
             else
                 for key in defaults
-                    val = @req.header key
+                    val = @header key
 
                     if val?
                         ip = val

@@ -67,7 +67,8 @@ handler = (results, options) ->
                 do next = ->
                     index += 1
                     fn = functions[index]
-                    result = fn.call results, request, response, next
+                    r = fn.call results, request, response, next if fn?
+                    result = r if r?
 
                 break
 

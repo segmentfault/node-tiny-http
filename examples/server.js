@@ -1,6 +1,14 @@
 var http = require('../build/http');
 
-http.on('/', function (req) {
+var interceptorOne = function (request, response, next) {
+    response.header('ip', request.ip());
+
+    next();
+
+    response.header('agent', request.agent);
+};
+
+http.on('/', interceptorOne, function (req) {
     return this.json(req.method);
 });
 
