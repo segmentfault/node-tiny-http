@@ -1,50 +1,14 @@
 Request = require './request'
+Response = require './response'
 Result = require './result'
 
 # routes map
 routes = {}
 
-# rules map
-rules = {}
-
-
-# find rule by name
-findRule = (name) ->
-    currentRules = []
-
-    if rules[name]?
-        [fn, depends] = rules[name]
-        
-        if depends?
-            for n in depends
-                found = ruleFind n
-
-                for item in found
-                    currentRules.push item if item not in currentRules
-        
-        currentRules.push rules[name]
-    
-    currentRules
-
 
 # create match uri pattern
 match = (method, pattern) ->
     keys = []
-    currentRules = []
-    currentRuleFunctions = []
-
-    # split rules
-    parts = pattern.split ' '
-
-    if parts.length > 1
-        currentRules = parts[0].split ';'
-        pattern = parts[1]
-
-    for name in currentRules
-        found = findRule name
-
-        for item in found
-            currentRuleFunctions.push item if item not in currentRuleFunctions
 
     # replace as regex
     pattern = pattern.replace /(:|%)([_a-z0-9-]+)/i, (m, prefix, name) ->
@@ -53,7 +17,6 @@ match = (method, pattern) ->
 
     r = new RegExp "^#{pattern}$", 'g'
 
-    [currentRuleFunctions, \
     (requestMethod, uri, params) ->
         return no if method? and requestMethod != method
 
@@ -69,47 +32,49 @@ match = (method, pattern) ->
 
         # not matched
         no
-    ]
-
-
-# register rule
-registerRule = (name, fn, depends = null) ->
-    if depends? and depends not instanceof Array
-        depends = depends.split ';'
-    rules[name] = [fn, depends]
 
 
 # register routes
-register = (method, pattern, fn) ->
-    [currentRules, tester] = match method, pattern
-    routes[pattern] = [tester, currentRules, fn]
+register = (method, pattern, actions) ->
+    tester = match method, pattern
+    functions = []
+
+    for action in actions
+        functions.push action if action not in functions
+
+    routes[pattern] = [tester, functions]
 
 
 # handler for http
-handler = (results) ->
+handler = (results, options) ->
 
     (req, res) ->
         
-        new Request req, (request) ->
+        response = new Response res, options
+
+        new Request req, options, (request) ->
             result = null
-            params = {}
 
             for pattern, def of routes
-                [tester, currentRules, fn] = def
+                [tester, functions] = def
+                params = {}
+                index = -1
 
                 # deny not matched
                 continue if not tester request.method, request.path, params
                 request.set params
 
-                for rule in currentRules
-                    result = rule.call results, request if rules[rule]?
-                    break if result instanceof Function
+                do next = ->
+                    index += 1
+                    fn = functions[index]
+                    result = fn.call results, request, response, next
 
-                result = fn.call results, request if result not instanceof Function
                 break
 
-            result = results.notFound() if not result?
-            result.call null, request, res
+            result = results.blank() if not result?
+            result.call null, request, response
+            response.respond()
 
-module.exports = { register, registerRule, handler }
+
+module.exports = { register, handler }
 

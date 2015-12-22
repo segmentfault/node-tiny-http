@@ -7,8 +7,8 @@ results = {}
 # register response method
 register = (name, fn) ->
     results[name] = (args...) ->
-        (req, res) ->
-            fn.apply {req, res}, args
+        (request, response) ->
+            fn.apply {request, response}, args
 
 
 # some default result
@@ -16,32 +16,51 @@ register = (name, fn) ->
 register 'file', (file) ->
     Fs.access file, Fs.R_OK, (err) =>
         if err?
-            @res.writeHead 404, 'Content-Type: text/html; charset=utf-8'
-            return @res.end 'File not found.'
+            return @response.status 200
+                .header 'content-type', 'text/html; charset=utf-8'
+                .content 'File not found.'
 
         mime = Mime.lookup file
-        @res.writeHead 200, 'Content-Type: ' + mime + '; charset=utf-8'
+        @response.content ->
+                stream = Fs.createReadStream file
+                stream.pipe @res
 
-        stream = Fs.createReadStream file
-        stream.pipe @res
+
+# blank content
+register 'blank', ->
+    @response.content ''
+
+
+# redirect url
+register 'redirect', (url, permanently = no) ->
+    @response.status if permanently then 301 else 302
+        .header 'location', url
+
+
+# redirect to referer
+register 'back', ->
+    url = @request.header 'referer', '/'
+    @response.status 302
+        .header 'location', url
 
 
 # handler 404
 register 'notFound', ->
-    @res.writeHead 404, 'Content-Type: text/html; charset=utf-8'
-    return @res.end 'File not found.'
+    @response.status 404
+        .content 'File not found.'
 
 
 # handler json data
 register 'json', (data) ->
-    @res.writeHead 200, 'Content-Type: application/json; charset=utf-8'
-    @res.end JSON.stringify data
+    @response.header 'content-type', 'application/json; charset=utf-8'
+        .content JSON.stringify data
 
 
 # handler html data
 register 'content', (content, type = 'text/html') ->
-    @res.writeHead 200, 'Content-Type: ' + type + '; charset=utf-8'
-    @res.end content
+    @response.header 'content-type', type + '; charset=utf-8'
+        .content content
+
 
 module.exports = { results, register }
 

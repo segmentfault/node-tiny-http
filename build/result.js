@@ -13,10 +13,10 @@
     return results[name] = function() {
       var args;
       args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      return function(req, res) {
+      return function(request, response) {
         return fn.apply({
-          req: req,
-          res: res
+          request: request,
+          response: response
         }, args);
       };
     };
@@ -25,35 +25,50 @@
   register('file', function(file) {
     return Fs.access(file, Fs.R_OK, (function(_this) {
       return function(err) {
-        var mime, stream;
+        var mime;
         if (err != null) {
-          _this.res.writeHead(404, 'Content-Type: text/html; charset=utf-8');
-          return _this.res.end('File not found.');
+          return _this.response.status(200).header('content-type', 'text/html; charset=utf-8').content('File not found.');
         }
         mime = Mime.lookup(file);
-        _this.res.writeHead(200, 'Content-Type: ' + mime + '; charset=utf-8');
-        stream = Fs.createReadStream(file);
-        return stream.pipe(_this.res);
+        return _this.response.content(function() {
+          var stream;
+          stream = Fs.createReadStream(file);
+          return stream.pipe(this.res);
+        });
       };
     })(this));
   });
 
+  register('blank', function() {
+    return this.response.content('');
+  });
+
+  register('redirect', function(url, permanently) {
+    if (permanently == null) {
+      permanently = false;
+    }
+    return this.response.status(permanently ? 301 : 302).header('location', url);
+  });
+
+  register('back', function() {
+    var url;
+    url = this.request.header('referer', '/');
+    return this.response.status(302).header('location', url);
+  });
+
   register('notFound', function() {
-    this.res.writeHead(404, 'Content-Type: text/html; charset=utf-8');
-    return this.res.end('File not found.');
+    return this.response.status(404).content('File not found.');
   });
 
   register('json', function(data) {
-    this.res.writeHead(200, 'Content-Type: application/json; charset=utf-8');
-    return this.res.end(JSON.stringify(data));
+    return this.response.header('content-type', 'application/json; charset=utf-8').content(JSON.stringify(data));
   });
 
   register('content', function(content, type) {
     if (type == null) {
       type = 'text/html';
     }
-    this.res.writeHead(200, 'Content-Type: ' + type + '; charset=utf-8');
-    return this.res.end(content);
+    return this.response.header('content-type', type + '; charset=utf-8').content(content);
   });
 
   module.exports = {

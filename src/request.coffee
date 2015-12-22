@@ -1,5 +1,6 @@
 Form = require 'formidable'
 Url = require 'url'
+Cookie = require 'cookie'
 
 
 class Request
@@ -8,14 +9,20 @@ class Request
 
     files = {}
 
+    cookies = {}
+
+    options = {}
+
+    ip = null
 
     mergeParams = (target) ->
         for k, v of target
             params[k] = v
 
 
-    constructor: (@req, cb) ->
+    constructor: (@req, opt, cb) ->
         parts = Url.parse @req.url, yes
+        options = opt
 
         @method = @req.method.toUpperCase()
         @uri = parts.href
@@ -23,6 +30,9 @@ class Request
         @host = parts.hostname
         @port = parts.port
         @path = if parts.pathname? then parts.pathname else '/'
+        @agent = @header 'user-agent'
+        
+        cookies = Cookie.parse @header 'cookie', ''
         params = parts.query
         
         if @method is 'POST'
@@ -36,6 +46,45 @@ class Request
                 cb @
         else
             cb @
+
+
+    ip: ->
+        defaults = ['x-real-ip', 'x-forwarded-for', 'client-ip']
+
+        if not ip?
+            if options.ipHeader?
+                ip = @req.header options.ipHeader, @req.socket.remoteAddress
+            else
+                for key in defaults
+                    val = @req.header key
+
+                    if val?
+                        ip = val
+                        break
+
+                ip = @req.socket.remoteAddress
+
+        ip
+
+
+    header: (key, val = null) ->
+        key = key.toLowerCase()
+        if @req.headers[key] then @req.headers[key] else val
+
+    
+    cookie: (key, val = null) ->
+        if cookies[key]? then cookies[key] else val
+
+
+    is: (query) ->
+        required = querystring.parse query
+
+        for k, v of required
+            if v? && v.length > 0
+                return yes if v != @get k
+            else
+                return yes if (@get k) is null
+        no
 
     
     set: (key, val = null) ->
