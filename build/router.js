@@ -57,13 +57,18 @@
     return routes[pattern] = [tester, functions];
   };
 
-  handler = function(results, options) {
+  handler = function(result, options) {
     return function(req, res) {
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var def, functions, index, next, params, pattern, result, tester;
-        result = null;
+        var _result, context, def, functions, index, next, params, pattern, tester;
+        _result = null;
+        context = {
+          request: request,
+          response: response,
+          result: result
+        };
         for (pattern in routes) {
           def = routes[pattern];
           tester = def[0], functions = def[1];
@@ -78,18 +83,18 @@
             index += 1;
             fn = functions[index];
             if (fn != null) {
-              r = fn.call(results, request, response, next);
+              r = fn.call(context, next);
             }
             if (r != null) {
-              return result = r;
+              return _result = r;
             }
           })();
           break;
         }
-        if (result == null) {
-          result = results.blank();
+        if (_result == null) {
+          _result = result.blank();
         }
-        result.call(null, request, response);
+        _result.call(null, request, response);
         return response.respond();
       });
     };

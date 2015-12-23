@@ -46,14 +46,15 @@ register = (method, pattern, actions) ->
 
 
 # handler for http
-handler = (results, options) ->
+handler = (result, options) ->
 
     (req, res) ->
         
         response = new Response res, options
 
         new Request req, options, (request) ->
-            result = null
+            _result = null
+            context = { request, response, result }
 
             for pattern, def of routes
                 [tester, functions] = def
@@ -67,13 +68,13 @@ handler = (results, options) ->
                 do next = ->
                     index += 1
                     fn = functions[index]
-                    r = fn.call results, request, response, next if fn?
-                    result = r if r?
+                    r = fn.call context, next if fn?
+                    _result = r if r?
 
                 break
 
-            result = results.blank() if not result?
-            result.call null, request, response
+            _result = result.blank() if not _result?
+            _result.call null, request, response
             response.respond()
 
 

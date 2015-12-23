@@ -2,11 +2,11 @@ Fs = require 'fs'
 Mime = require 'mime'
 
 # results map
-results = {}
+result = {}
 
 # register response method
 register = (name, fn) ->
-    results[name] = (args...) ->
+    result[name] = (args...) ->
         (request, response) ->
             fn.apply {request, response}, args
 
@@ -17,7 +17,6 @@ register 'file', (file) ->
     Fs.access file, Fs.R_OK, (err) =>
         if err?
             return @response.status 200
-                .header 'content-type', 'text/html; charset=utf-8'
                 .content 'File not found.'
 
         mime = Mime.lookup file
@@ -62,5 +61,5 @@ register 'content', (content, type = 'text/html') ->
         .content content
 
 
-module.exports = { results, register }
+module.exports = { result, register }
 

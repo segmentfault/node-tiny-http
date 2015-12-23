@@ -5,7 +5,7 @@ Router = require './router'
 
 module.exports =
     start: (options) ->
-        http = Http.createServer Router.handler Result.results, options
+        http = Http.createServer Router.handler Result.result, options
         
         if options.sock?
             http.listen options.sock

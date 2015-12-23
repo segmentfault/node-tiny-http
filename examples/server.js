@@ -1,15 +1,16 @@
 var http = require('../build/http');
 
-var interceptorOne = function (request, response, next) {
-    response.header('ip', request.ip());
+var interceptorOne = function (next) {
+    this.response.header('ip', this.request.ip());
+    this.text = '123';
 
     next();
 
-    response.header('agent', request.agent);
+    this.response.header('agent', this.request.agent);
 };
 
-http.on('/', interceptorOne, function (req) {
-    return this.json(req.method);
+http.on('/', interceptorOne, function () {
+    return this.result.json(this.text + this.request.method);
 });
 
 http.start({ host : 'localhost', port : 9999 });

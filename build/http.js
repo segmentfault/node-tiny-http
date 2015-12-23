@@ -14,7 +14,7 @@
   module.exports = {
     start: function(options) {
       var http;
-      http = Http.createServer(Router.handler(Result.results, options));
+      http = Http.createServer(Router.handler(Result.result, options));
       if (options.sock != null) {
         return http.listen(options.sock);
       } else {
