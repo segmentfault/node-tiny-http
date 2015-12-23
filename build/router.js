@@ -63,7 +63,7 @@
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var _result, context, def, done, functions, index, next, params, pattern, results, tester;
+        var _result, context, def, done, functions, index, next, params, pattern, tester;
         _result = null;
         context = {
           request: request,
@@ -80,7 +80,6 @@
             return response.respond();
           }
         };
-        results = [];
         for (pattern in routes) {
           def = routes[pattern];
           tester = def[0], functions = def[1];
@@ -98,9 +97,9 @@
               return fn.call(context, done, next);
             }
           })();
-          break;
+          return;
         }
-        return results;
+        return done('notFound');
       });
     };
   };

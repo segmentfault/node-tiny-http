@@ -76,7 +76,9 @@ handler = (result, options) ->
                     fn = functions[index]
                     fn.call context, done, next if fn?
 
-                break
+                return
+
+            done 'notFound'
 
 
 module.exports = { register, handler }
