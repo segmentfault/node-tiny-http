@@ -24,6 +24,7 @@
     function Response(res, opt) {
       this.res = res;
       options = opt;
+      this.responded = false;
     }
 
     Response.prototype.content = function(val) {

@@ -23,18 +23,19 @@
   };
 
   register('file', function(file) {
+    this.response.responded = true;
     return Fs.access(file, Fs.R_OK, (function(_this) {
       return function(err) {
         var mime;
         if (err != null) {
-          return _this.response.status(200).content('File not found.');
+          return _this.response.status(404).content('File not found.').respond();
         }
         mime = Mime.lookup(file);
-        return _this.response.content(function() {
+        return _this.response.header('content-type', mime + '; charset=utf-8').content(function() {
           var stream;
           stream = Fs.createReadStream(file);
           return stream.pipe(this.res);
-        });
+        }).respond();
       };
     })(this));
   });

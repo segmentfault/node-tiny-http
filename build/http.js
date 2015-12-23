@@ -40,9 +40,11 @@
       return Router.register('POST', pattern, fn);
     },
     assets: function(path, dir) {
-      return Router.register('GET', (path.replace(/\/+$/g, '')) + '/%path', function(request) {
-        return this.file(dir + '/' + ((request.get('path')).replace(/\.{2,}/g, '')));
-      });
+      return Router.register('GET', (path.replace(/\/+$/g, '')) + '/%path', [
+        function() {
+          return this.result.file(dir + '/' + ((this.request.get('path')).replace(/\.{2,}/g, '')));
+        }
+      ]);
     }
   };
 

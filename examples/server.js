@@ -13,5 +13,7 @@ http.on('/', interceptorOne, function () {
     return this.result.json(this.text + this.request.method);
 });
 
+http.assets('/src', __dirname + '/../src');
+
 http.start({ host : 'localhost', port : 9999 });
 

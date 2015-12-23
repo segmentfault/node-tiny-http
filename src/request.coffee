@@ -26,11 +26,14 @@ class Request
 
         @method = @req.method.toUpperCase()
         @uri = parts.href
-        @scheme = parts.protocol
-        @host = parts.hostname
-        @port = parts.port
         @path = if parts.pathname? then parts.pathname else '/'
+        @port = @req.socket.remotePort
         @agent = @header 'user-agent'
+
+        # detect host
+        host = @header 'host'
+        matched = host.match /^\s*([_0-9a-z-\.]+)/
+        @host = if matched then matched[1] else null
         
         cookies = Cookie.parse @header 'cookie', ''
         params = parts.query

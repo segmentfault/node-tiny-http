@@ -75,7 +75,7 @@ handler = (result, options) ->
 
             _result = result.blank() if not _result?
             _result.call null, request, response
-            response.respond()
+            response.respond() if not response.responded
 
 
 module.exports = { register, handler }

@@ -32,17 +32,18 @@
     };
 
     function Request(req, opt, cb) {
-      var form, parts;
+      var form, host, matched, parts;
       this.req = req;
       parts = Url.parse(this.req.url, true);
       options = opt;
       this.method = this.req.method.toUpperCase();
       this.uri = parts.href;
-      this.scheme = parts.protocol;
-      this.host = parts.hostname;
-      this.port = parts.port;
       this.path = parts.pathname != null ? parts.pathname : '/';
+      this.port = this.req.socket.remotePort;
       this.agent = this.header('user-agent');
+      host = this.header('host');
+      matched = host.match(/^\s*([_0-9a-z-\.]+)/);
+      this.host = matched ? matched[1] : null;
       cookies = Cookie.parse(this.header('cookie', ''));
       params = parts.query;
       if (this.method === 'POST') {

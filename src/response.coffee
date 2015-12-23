@@ -17,6 +17,7 @@ class Response
 
     constructor: (@res, opt) ->
         options = opt
+        @responded = no
 
 
     # set content

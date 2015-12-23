@@ -95,7 +95,9 @@
           _result = result.blank();
         }
         _result.call(null, request, response);
-        return response.respond();
+        if (!response.responded) {
+          return response.respond();
+        }
       });
     };
   };

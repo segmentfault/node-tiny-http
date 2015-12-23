@@ -14,15 +14,20 @@ register = (name, fn) ->
 # some default result
 # handler static file
 register 'file', (file) ->
+    @response.responded = yes
+
     Fs.access file, Fs.R_OK, (err) =>
         if err?
-            return @response.status 200
+            return @response.status 404
                 .content 'File not found.'
+                .respond()
 
         mime = Mime.lookup file
-        @response.content ->
+        @response.header 'content-type', mime + '; charset=utf-8'
+            .content ->
                 stream = Fs.createReadStream file
                 stream.pipe @res
+            .respond()
 
 
 # blank content
