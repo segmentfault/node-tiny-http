@@ -41,8 +41,8 @@
     },
     assets: function(path, dir) {
       return Router.register('GET', (path.replace(/\/+$/g, '')) + '/%path', [
-        function() {
-          return this.result.file(dir + '/' + ((this.request.get('path')).replace(/\.{2,}/g, '')));
+        function(done) {
+          return done('file', dir + '/' + ((this.request.get('path')).replace(/\.{2,}/g, '')));
         }
       ]);
     }

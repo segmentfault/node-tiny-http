@@ -7,65 +7,62 @@
   Status = require('statuses');
 
   Response = (function() {
-    var content, cookies, headers, options, statusCode;
-
-    statusCode = 200;
-
-    headers = {
-      'content-type': 'text/html; charset=utf-8'
-    };
-
-    cookies = [];
-
-    content = null;
+    var options;
 
     options = {};
 
     function Response(res, opt) {
       this.res = res;
+      this.$statusCode = 200;
+      this.$headers = {
+        'content-type': 'text/html; charset=utf-8'
+      };
+      this.$cookies = [];
+      this.$content = null;
       options = opt;
       this.responded = false;
     }
 
     Response.prototype.content = function(val) {
-      content = val;
+      this.$content = val;
       return this;
     };
 
     Response.prototype.status = function(code) {
-      statusCode = Status(code);
+      this.$statusCode = Status(code);
       return this;
     };
 
     Response.prototype.cookie = function(key, val, options) {
-      cookies.push(Cookie.serialize(key, val, options));
+      this.$cookies.push(Cookie.serialize(key, val, options));
       return this;
     };
 
     Response.prototype.header = function(key, val) {
       key = key.toLowerCase();
-      headers[key] = val;
+      this.$headers[key] = val;
       return this;
     };
 
     Response.prototype.respond = function() {
-      var key, val;
-      this.res.statusCode = statusCode;
-      this.res.statusMessage = Status[statusCode];
-      for (key in headers) {
-        val = headers[key];
+      var key, ref, val;
+      this.res.statusCode = this.$statusCode;
+      this.res.statusMessage = Status[this.$statusCode];
+      ref = this.$headers;
+      for (key in ref) {
+        val = ref[key];
         key = key.replace(/(^|-)([a-z])/g, function(m, a, b) {
           return a + b.toUpperCase();
         });
         this.res.setHeader(key, val);
       }
-      if (cookies.length > 0) {
-        this.res.setHeader('Set-Cookie', cookies);
+      if (this.$cookies.length > 0) {
+        this.res.setHeader('Set-Cookie', this.$cookies);
       }
-      if (content instanceof Function) {
-        return content.apply(this);
+      if (this.$content instanceof Function) {
+        return this.$content.apply(this);
       } else {
-        return this.res.end(content);
+        return this.res.end(this.$content);
       }
     };
 

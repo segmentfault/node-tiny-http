@@ -54,7 +54,13 @@ handler = (result, options) ->
 
         new Request req, options, (request) ->
             _result = null
-            context = { request, response, result }
+            context = { request, response }
+            
+            done = (name, args...) ->
+                name = 'blank' if not result[name]?
+                result[name].apply null, args
+                    .call null, request, response
+                response.respond() if not response.responded
 
             for pattern, def of routes
                 [tester, functions] = def
@@ -68,14 +74,9 @@ handler = (result, options) ->
                 do next = ->
                     index += 1
                     fn = functions[index]
-                    r = fn.call context, next if fn?
-                    _result = r if r?
+                    fn.call context, done, next if fn?
 
                 break
-
-            _result = result.blank() if not _result?
-            _result.call null, request, response
-            response.respond() if not response.responded
 
 
 module.exports = { register, handler }

@@ -9,24 +9,16 @@
   Cookie = require('cookie');
 
   Request = (function() {
-    var cookies, files, ip, mergeParams, options, params;
-
-    params = {};
-
-    files = {};
-
-    cookies = {};
+    var mergeParams, options;
 
     options = {};
 
-    ip = null;
-
-    mergeParams = function(target) {
+    mergeParams = function(source, target) {
       var k, results, v;
       results = [];
       for (k in target) {
         v = target[k];
-        results.push(params[k] = v);
+        results.push(source[k] = v);
       }
       return results;
     };
@@ -44,18 +36,22 @@
       host = this.header('host');
       matched = host.match(/^\s*([_0-9a-z-\.]+)/);
       this.host = matched ? matched[1] : null;
-      cookies = Cookie.parse(this.header('cookie', ''));
-      params = parts.query;
+      this.$cookies = Cookie.parse(this.header('cookie', ''));
+      this.$params = parts.query;
+      this.$files = {};
+      this.$ip = null;
       if (this.method === 'POST') {
         form = new Form.IncomingForm;
-        form.parse(this.req, function(err, _fields, _files) {
-          if (err != null) {
-            return cb(this);
-          }
-          mergeParams(_fields);
-          files = _files;
-          return cb(this);
-        });
+        form.parse(this.req, (function(_this) {
+          return function(err, fields, files) {
+            if (err != null) {
+              return cb(_this);
+            }
+            mergeParams(_this.$params, fields);
+            _this.$files = files;
+            return cb(_this);
+          };
+        })(this));
       } else {
         cb(this);
       }
@@ -64,22 +60,22 @@
     Request.prototype.ip = function() {
       var defaults, i, key, len, val;
       defaults = ['x-real-ip', 'x-forwarded-for', 'client-ip'];
-      if (ip == null) {
+      if (this.$ip == null) {
         if (options.ipHeader != null) {
-          ip = this.header(options.ipHeader, this.req.socket.remoteAddress);
+          this.$ip = this.header(options.ipHeader, this.req.socket.remoteAddress);
         } else {
           for (i = 0, len = defaults.length; i < len; i++) {
             key = defaults[i];
             val = this.header(key);
             if (val != null) {
-              ip = val;
+              this.$ip = val;
               break;
             }
           }
-          ip = this.req.socket.remoteAddress;
+          this.$ip = this.req.socket.remoteAddress;
         }
       }
-      return ip;
+      return this.$ip;
     };
 
     Request.prototype.header = function(key, val) {
@@ -98,8 +94,8 @@
       if (val == null) {
         val = null;
       }
-      if (cookies[key] != null) {
-        return cookies[key];
+      if (this.$cookies[key] != null) {
+        return this.$cookies[key];
       } else {
         return val;
       }
@@ -128,9 +124,9 @@
         val = null;
       }
       if (val === null && key instanceof Object) {
-        return mergeParams(key);
+        return mergeParams(this.$params, key);
       } else {
-        return params[key] = val;
+        return this.$params[key] = val;
       }
     };
 
@@ -138,16 +134,16 @@
       if (defaults == null) {
         defaults = null;
       }
-      if (params[key] != null) {
-        return params[key];
+      if (this.$params[key] != null) {
+        return this.$params[key];
       } else {
         return defaults;
       }
     };
 
     Request.prototype.file = function(key) {
-      if (files[key] != null) {
-        return files[key];
+      if (this.$files[key] != null) {
+        return this.$files[key];
       } else {
         return null;
       }

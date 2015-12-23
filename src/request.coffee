@@ -5,19 +5,11 @@ Cookie = require 'cookie'
 
 class Request
 
-    params = {}
-
-    files = {}
-
-    cookies = {}
-
     options = {}
 
-    ip = null
-
-    mergeParams = (target) ->
+    mergeParams = (source, target) ->
         for k, v of target
-            params[k] = v
+            source[k] = v
 
 
     constructor: (@req, opt, cb) ->
@@ -35,17 +27,19 @@ class Request
         matched = host.match /^\s*([_0-9a-z-\.]+)/
         @host = if matched then matched[1] else null
         
-        cookies = Cookie.parse @header 'cookie', ''
-        params = parts.query
+        @$cookies = Cookie.parse @header 'cookie', ''
+        @$params = parts.query
+        @$files = {}
+        @$ip = null
         
         if @method is 'POST'
             form = new Form.IncomingForm
 
-            form.parse @req, (err, _fields, _files) ->
+            form.parse @req, (err, fields, files) =>
                 return cb @ if err?
 
-                mergeParams _fields
-                files = _files
+                mergeParams @$params, fields
+                @$files = files
                 cb @
         else
             cb @
@@ -54,20 +48,20 @@ class Request
     ip: ->
         defaults = ['x-real-ip', 'x-forwarded-for', 'client-ip']
 
-        if not ip?
+        if not @$ip?
             if options.ipHeader?
-                ip = @header options.ipHeader, @req.socket.remoteAddress
+                @$ip = @header options.ipHeader, @req.socket.remoteAddress
             else
                 for key in defaults
                     val = @header key
 
                     if val?
-                        ip = val
+                        @$ip = val
                         break
 
-                ip = @req.socket.remoteAddress
+                @$ip = @req.socket.remoteAddress
 
-        ip
+        @$ip
 
 
     header: (key, val = null) ->
@@ -76,7 +70,7 @@ class Request
 
     
     cookie: (key, val = null) ->
-        if cookies[key]? then cookies[key] else val
+        if @$cookies[key]? then @$cookies[key] else val
 
 
     is: (query) ->
@@ -92,17 +86,17 @@ class Request
     
     set: (key, val = null) ->
         if val == null and key instanceof Object
-            mergeParams key
+            mergeParams @$params, key
         else
-            params[key] = val
+            @$params[key] = val
 
 
     get: (key, defaults = null) ->
-        if params[key]? then params[key] else defaults
+        if @$params[key]? then @$params[key] else defaults
     
     
     file: (key) ->
-        if files[key]? then files[key] else null
+        if @$files[key]? then @$files[key] else null
 
 
 module.exports = Request
