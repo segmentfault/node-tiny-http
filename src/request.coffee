@@ -1,6 +1,7 @@
 Form = require 'formidable'
 Url = require 'url'
 Cookie = require 'cookie'
+QueryString = require 'querystring'
 
 
 class Request
@@ -20,10 +21,10 @@ class Request
         @uri = parts.href
         @path = if parts.pathname? then parts.pathname else '/'
         @port = @req.socket.remotePort
-        @agent = @header 'user-agent'
+        @agent = @header 'user-agent', ''
 
         # detect host
-        host = @header 'host'
+        host = @header 'host', ''
         matched = host.match /^\s*([_0-9a-z-\.]+)/
         @host = if matched then matched[1] else null
         
@@ -64,24 +65,24 @@ class Request
         @$ip
 
 
-    header: (key, val = null) ->
+    header: (key, val = undefined) ->
         key = key.toLowerCase()
         if @req.headers[key] then @req.headers[key] else val
 
     
-    cookie: (key, val = null) ->
+    cookie: (key, val = undefined) ->
         if @$cookies[key]? then @$cookies[key] else val
 
 
     is: (query) ->
-        required = querystring.parse query
+        required = QueryString.parse query
 
         for k, v of required
-            if v? && v.length > 0
-                return yes if v != @get k
+            if v.length > 0
+                return no if v != @get k
             else
-                return yes if (@get k) is null
-        no
+                return no if (@get k) is undefined
+        yes
 
     
     set: (key, val = null) ->
@@ -91,12 +92,12 @@ class Request
             @$params[key] = val
 
 
-    get: (key, defaults = null) ->
+    get: (key, defaults = undefined) ->
         if @$params[key]? then @$params[key] else defaults
     
     
     file: (key) ->
-        if @$files[key]? then @$files[key] else null
+        if @$files[key]? then @$files[key] else undefined
 
 
 module.exports = Request
