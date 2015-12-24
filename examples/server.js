@@ -9,9 +9,11 @@ var interceptorOne = function (done, next) {
     console.log(this.request.agent);
 };
 
-http.on('/', interceptorOne, function (done) {
+http.on('/', function (done) {
     return done('json', this.text + this.request.method);
-});
+}).use(interceptorOne);
+
+http.use(interceptorOne);
 
 http.assets('/src', __dirname + '/../src');
 

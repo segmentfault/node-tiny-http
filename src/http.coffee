@@ -18,19 +18,23 @@ module.exports =
     # register result
     result: Result.register
 
+
+    # use default functions
+    use: Router.use
+
     
     # on method
-    on: (pattern, fn...) ->
-        Router.register null, pattern, fn
+    on: (pattern, fn, method = null) ->
+        Router.register method, pattern, fn
 
     
     # get method
-    get: (pattern, fn...) ->
+    get: (pattern, fn) ->
         Router.register 'GET', pattern, fn
 
     
     # post method
-    post: (pattern, fn...) ->
+    post: (pattern, fn) ->
         Router.register 'POST', pattern, fn
 
     

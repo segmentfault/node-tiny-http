@@ -5,6 +5,9 @@ Result = require './result'
 # routes map
 routes = {}
 
+# default functions
+defaults = []
+
 
 # create match uri pattern
 match = (method, pattern) ->
@@ -35,14 +38,35 @@ match = (method, pattern) ->
 
 
 # register routes
-register = (method, pattern, actions) ->
+register = (method, pattern, fn) ->
     tester = match method, pattern
     functions = []
+    pushed = no
 
+    routes[pattern] =
+        get: ->
+            if not pushed
+                functions.push fn
+                pushed = yes
+
+            [tester, functions]
+        use: (actions...) ->
+            for action in actions
+                if action instanceof Array
+                    for item in action
+                        functions.push item
+                else
+                    functions.push action
+
+
+# register default functions
+use = (actions...) ->
     for action in actions
-        functions.push action if action not in functions
-
-    routes[pattern] = [tester, functions]
+        if action instanceof Array
+            for item in action
+                defaults.push item
+        else
+            defaults.push action
 
 
 # handler for http
@@ -63,7 +87,7 @@ handler = (result, options) ->
                 response.respond() if not response.responded
 
             for pattern, def of routes
-                [tester, functions] = def
+                [tester, functions] = def.get()
                 params = {}
                 index = -1
 
@@ -73,7 +97,7 @@ handler = (result, options) ->
 
                 do next = ->
                     index += 1
-                    fn = functions[index]
+                    fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
                     fn.call context, done, next if fn?
 
                 return
@@ -81,5 +105,5 @@ handler = (result, options) ->
             done 'notFound'
 
 
-module.exports = { register, handler }
+module.exports = { register, handler, use }
 
