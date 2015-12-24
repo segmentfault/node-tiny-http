@@ -11,7 +11,7 @@ var interceptorOne = function (done, next) {
 
 http.on('/', function (done) {
     return done('json', this.text + this.request.method);
-}).use(interceptorOne);
+});
 
 http.use(interceptorOne);
 
