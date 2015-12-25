@@ -47,39 +47,38 @@
   };
 
   register = function(method, pattern, fn) {
-    var functions, pushed, tester;
+    var functions, pushed, raw, tester;
     tester = match(method, pattern);
     functions = [];
     pushed = false;
+    raw = false;
     return routes[pattern] = {
       get: function() {
         if (!pushed) {
           functions.push(fn);
           pushed = true;
         }
-        return [tester, functions];
+        return [tester, functions, raw];
+      },
+      raw: function() {
+        raw = true;
+        return this;
       },
       use: function() {
-        var action, actions, item, j, len, results;
+        var action, actions, item, j, k, len, len1;
         actions = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-        results = [];
         for (j = 0, len = actions.length; j < len; j++) {
           action = actions[j];
           if (action instanceof Array) {
-            results.push((function() {
-              var k, len1, results1;
-              results1 = [];
-              for (k = 0, len1 = action.length; k < len1; k++) {
-                item = action[k];
-                results1.push(functions.push(item));
-              }
-              return results1;
-            })());
+            for (k = 0, len1 = action.length; k < len1; k++) {
+              item = action[k];
+              functions.push(item);
+            }
           } else {
-            results.push(functions.push(action));
+            functions.push(action);
           }
         }
-        return results;
+        return this;
       }
     };
   };
@@ -112,7 +111,7 @@
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var callbacks, context, def, done, functions, index, next, params, pattern, ref, resultArgs, returned, tester;
+        var callbacks, context, def, done, functions, index, next, params, pattern, raw, ref, resultArgs, returned, tester;
         context = {
           request: request,
           response: response
@@ -138,7 +137,7 @@
         };
         for (pattern in routes) {
           def = routes[pattern];
-          ref = def.get(), tester = ref[0], functions = ref[1];
+          ref = def.get(), tester = ref[0], functions = ref[1], raw = ref[2];
           params = {};
           if (!tester(request.method, request.path, params)) {
             continue;
@@ -162,7 +161,11 @@
                 callbacks.push(callback);
               }
               index += 1;
-              fn = index >= defaults.length ? functions[index - defaults.length] : defaults[index];
+              if (raw) {
+                fn = functions[index];
+              } else {
+                fn = index >= defaults.length ? functions[index - defaults.length] : defaults[index];
+              }
               if (fn != null) {
                 return fn.call(context, done, next);
               }

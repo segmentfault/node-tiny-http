@@ -42,6 +42,7 @@ register = (method, pattern, fn) ->
     tester = match method, pattern
     functions = []
     pushed = no
+    raw = no
 
     routes[pattern] =
         get: ->
@@ -49,7 +50,10 @@ register = (method, pattern, fn) ->
                 functions.push fn
                 pushed = yes
 
-            [tester, functions]
+            [tester, functions, raw]
+        raw: ->
+            raw = yes
+            @
         use: (actions...) ->
             for action in actions
                 if action instanceof Array
@@ -57,6 +61,7 @@ register = (method, pattern, fn) ->
                         functions.push item
                 else
                     functions.push action
+            @
 
 
 # register default functions
@@ -94,7 +99,7 @@ handler = (result, options) ->
                 next()
 
             for pattern, def of routes
-                [tester, functions] = def.get()
+                [tester, functions, raw] = def.get()
                 params = {}
 
                 # deny not matched
@@ -115,7 +120,12 @@ handler = (result, options) ->
                     else
                         callbacks.push callback if callback?
                         index += 1
-                        fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
+
+                        if raw
+                            fn = functions[index]
+                        else
+                            fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
+
                         fn.call context, done, next if fn?
 
                 return
