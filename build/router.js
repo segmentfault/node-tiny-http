@@ -112,17 +112,26 @@
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var _result, context, def, done, functions, index, next, params, pattern, ref, tester;
-        _result = null;
+        var callbacks, context, def, done, functions, index, next, params, pattern, ref, returned, tester;
         context = {
           request: request,
           response: response
         };
+        callbacks = [];
+        returned = false;
         done = function() {
-          var args, name;
+          var args, callback, j, name;
           name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+          if (returned) {
+            return;
+          }
+          returned = true;
           if (result[name] == null) {
             name = 'blank';
+          }
+          for (j = callbacks.length - 1; j >= 0; j += -1) {
+            callback = callbacks[j];
+            callback.call(context, name, args);
           }
           result[name].apply(null, args).call(null, request, response);
           if (!response.responded) {
@@ -138,14 +147,20 @@
             continue;
           }
           request.set(params);
-          (next = function() {
+          (next = function(callback) {
             var fn;
+            if (returned) {
+              return;
+            }
+            if (callback != null) {
+              callbacks.push(callback);
+            }
             index += 1;
             fn = index >= defaults.length ? functions[index - defaults.length] : defaults[index];
             if (fn != null) {
               return fn.call(context, done, next);
             }
-          })();
+          })(null);
           return;
         }
         return done('notFound');

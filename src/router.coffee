@@ -77,11 +77,18 @@ handler = (result, options) ->
         response = new Response res, options
 
         new Request req, options, (request) ->
-            _result = null
             context = { request, response }
+            callbacks = []
+            returned = no
             
             done = (name, args...) ->
+                return if returned
+                returned = yes
                 name = 'blank' if not result[name]?
+
+                for callback in callbacks by -1
+                    callback.call context, name, args
+
                 result[name].apply null, args
                     .call null, request, response
                 response.respond() if not response.responded
@@ -95,7 +102,10 @@ handler = (result, options) ->
                 continue if not tester request.method, request.path, params
                 request.set params
 
-                do next = ->
+                do next = (callback = null) ->
+                    return if returned
+                    
+                    callbacks.push callback if callback?
                     index += 1
                     fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
                     fn.call context, done, next if fn?
