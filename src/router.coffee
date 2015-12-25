@@ -89,6 +89,12 @@ handler = (result, options) ->
             resultArgs = null
             next = null
 
+            respond = ->
+                [name, args] = resultArgs
+                result[name].apply null, args
+                    .call null, request, response
+                response.respond() if not response.responded
+
             done = (name, args...) ->
                 return if returned
                 returned = yes
@@ -96,7 +102,7 @@ handler = (result, options) ->
                 name = 'blank' if not result[name]?
                 resultArgs = [name, args]
                 
-                next()
+                if next then next() else respond()
 
             for pattern, def of routes
                 [tester, functions, raw] = def.get()
@@ -113,10 +119,7 @@ handler = (result, options) ->
                         if index >= 0
                             callbacks[index].apply context, resultArgs
                         else
-                            [name, args] = resultArgs
-                            result[name].apply null, args
-                                .call null, request, response
-                            response.respond() if not response.responded
+                            respond()
                     else
                         callbacks.push callback if callback?
                         index += 1

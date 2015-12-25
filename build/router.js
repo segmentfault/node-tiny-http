@@ -111,7 +111,7 @@
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var callbacks, context, def, done, functions, index, next, params, pattern, raw, ref, resultArgs, returned, tester;
+        var callbacks, context, def, done, functions, index, next, params, pattern, raw, ref, respond, resultArgs, returned, tester;
         context = {
           request: request,
           response: response
@@ -121,6 +121,14 @@
         index = -1;
         resultArgs = null;
         next = null;
+        respond = function() {
+          var args, name;
+          name = resultArgs[0], args = resultArgs[1];
+          result[name].apply(null, args).call(null, request, response);
+          if (!response.responded) {
+            return response.respond();
+          }
+        };
         done = function() {
           var args, name;
           name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
@@ -133,7 +141,11 @@
             name = 'blank';
           }
           resultArgs = [name, args];
-          return next();
+          if (next) {
+            return next();
+          } else {
+            return respond();
+          }
         };
         for (pattern in routes) {
           def = routes[pattern];
@@ -144,17 +156,13 @@
           }
           request.set(params);
           (next = function(callback) {
-            var args, fn, name;
+            var fn;
             if (returned) {
               index -= 1;
               if (index >= 0) {
                 return callbacks[index].apply(context, resultArgs);
               } else {
-                name = resultArgs[0], args = resultArgs[1];
-                result[name].apply(null, args).call(null, request, response);
-                if (!response.responded) {
-                  return response.respond();
-                }
+                return respond();
               }
             } else {
               if (callback != null) {
