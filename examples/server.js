@@ -6,6 +6,8 @@ var interceptorOne = function (done, next) {
 
     next(function (name, args) {
         console.log(2, name, args);
+
+        next();
     });
 
     console.log(this.request.agent);
@@ -19,6 +21,8 @@ http.on('/', function (done) {
     next(function (name, args) {
         console.log(1, name, args);
         args[0] = 'changed ' + args[0];
+
+        next();
     });
 });
 

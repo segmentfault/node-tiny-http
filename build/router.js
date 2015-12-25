@@ -112,53 +112,60 @@
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var callbacks, context, def, done, functions, index, next, params, pattern, ref, returned, tester;
+        var callbacks, context, def, done, functions, index, next, params, pattern, ref, resultArgs, returned, tester;
         context = {
           request: request,
           response: response
         };
         callbacks = [];
         returned = false;
+        index = -1;
+        resultArgs = null;
+        next = null;
         done = function() {
-          var args, callback, j, name;
+          var args, name;
           name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
           if (returned) {
             return;
           }
           returned = true;
+          index = callbacks.length;
           if (result[name] == null) {
             name = 'blank';
           }
-          for (j = callbacks.length - 1; j >= 0; j += -1) {
-            callback = callbacks[j];
-            callback.call(context, name, args);
-          }
-          result[name].apply(null, args).call(null, request, response);
-          if (!response.responded) {
-            return response.respond();
-          }
+          resultArgs = [name, args];
+          return next();
         };
         for (pattern in routes) {
           def = routes[pattern];
           ref = def.get(), tester = ref[0], functions = ref[1];
           params = {};
-          index = -1;
           if (!tester(request.method, request.path, params)) {
             continue;
           }
           request.set(params);
           (next = function(callback) {
-            var fn;
+            var args, fn, name;
             if (returned) {
-              return;
-            }
-            if (callback != null) {
-              callbacks.push(callback);
-            }
-            index += 1;
-            fn = index >= defaults.length ? functions[index - defaults.length] : defaults[index];
-            if (fn != null) {
-              return fn.call(context, done, next);
+              index -= 1;
+              if (index >= 0) {
+                return callbacks[index].apply(context, resultArgs);
+              } else {
+                name = resultArgs[0], args = resultArgs[1];
+                result[name].apply(null, args).call(null, request, response);
+                if (!response.responded) {
+                  return response.respond();
+                }
+              }
+            } else {
+              if (callback != null) {
+                callbacks.push(callback);
+              }
+              index += 1;
+              fn = index >= defaults.length ? functions[index - defaults.length] : defaults[index];
+              if (fn != null) {
+                return fn.call(context, done, next);
+              }
             }
           })(null);
           return;

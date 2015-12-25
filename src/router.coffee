@@ -80,35 +80,43 @@ handler = (result, options) ->
             context = { request, response }
             callbacks = []
             returned = no
-            
+            index = -1
+            resultArgs = null
+            next = null
+
             done = (name, args...) ->
                 return if returned
                 returned = yes
+                index = callbacks.length
                 name = 'blank' if not result[name]?
-
-                for callback in callbacks by -1
-                    callback.call context, name, args
-
-                result[name].apply null, args
-                    .call null, request, response
-                response.respond() if not response.responded
+                resultArgs = [name, args]
+                
+                next()
 
             for pattern, def of routes
                 [tester, functions] = def.get()
                 params = {}
-                index = -1
 
                 # deny not matched
                 continue if not tester request.method, request.path, params
                 request.set params
 
                 do next = (callback = null) ->
-                    return if returned
-                    
-                    callbacks.push callback if callback?
-                    index += 1
-                    fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
-                    fn.call context, done, next if fn?
+                    if returned
+                        index -= 1
+
+                        if index >= 0
+                            callbacks[index].apply context, resultArgs
+                        else
+                            [name, args] = resultArgs
+                            result[name].apply null, args
+                                .call null, request, response
+                            response.respond() if not response.responded
+                    else
+                        callbacks.push callback if callback?
+                        index += 1
+                        fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
+                        fn.call context, done, next if fn?
 
                 return
 
