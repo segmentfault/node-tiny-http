@@ -9,7 +9,7 @@
 
   Result = require('./result');
 
-  routes = {};
+  routes = [];
 
   defaults = [];
 
@@ -52,7 +52,7 @@
     functions = [];
     pushed = false;
     raw = false;
-    return routes[pattern] = {
+    return routes.push({
       get: function() {
         if (!pushed) {
           functions.push(fn);
@@ -80,7 +80,7 @@
         }
         return this;
       }
-    };
+    });
   };
 
   use = function() {
@@ -111,7 +111,7 @@
       var response;
       response = new Response(res, options);
       return new Request(req, options, function(request) {
-        var callbacks, context, def, done, functions, index, next, params, pattern, raw, ref, respond, resultArgs, returned, tester;
+        var callbacks, context, def, done, functions, index, j, len, next, params, raw, ref, respond, resultArgs, returned, tester;
         context = {
           request: request,
           response: response
@@ -147,8 +147,8 @@
             return respond();
           }
         };
-        for (pattern in routes) {
-          def = routes[pattern];
+        for (j = 0, len = routes.length; j < len; j++) {
+          def = routes[j];
           ref = def.get(), tester = ref[0], functions = ref[1], raw = ref[2];
           params = {};
           if (!tester(request.method, request.path, params)) {

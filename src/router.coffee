@@ -3,7 +3,7 @@ Response = require './response'
 Result = require './result'
 
 # routes map
-routes = {}
+routes = []
 
 # default functions
 defaults = []
@@ -44,7 +44,7 @@ register = (method, pattern, fn) ->
     pushed = no
     raw = no
 
-    routes[pattern] =
+    routes.push
         get: ->
             if not pushed
                 functions.push fn
@@ -104,7 +104,7 @@ handler = (result, options) ->
                 
                 if next then next() else respond()
 
-            for pattern, def of routes
+            for def in routes
                 [tester, functions, raw] = def.get()
                 params = {}
 
