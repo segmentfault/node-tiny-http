@@ -81,7 +81,8 @@ class Request
             if v.length > 0
                 return no if v != @get k
             else
-                return no if (@get k) is undefined
+                val = @get k
+                return no if val is undefined or val.length == 0
         yes
 
     

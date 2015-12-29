@@ -104,7 +104,7 @@
     };
 
     Request.prototype.is = function(query) {
-      var k, required, v;
+      var k, required, v, val;
       required = QueryString.parse(query);
       for (k in required) {
         v = required[k];
@@ -113,7 +113,8 @@
             return false;
           }
         } else {
-          if ((this.get(k)) === void 0) {
+          val = this.get(k);
+          if (val === void 0 || val.length === 0) {
             return false;
           }
         }

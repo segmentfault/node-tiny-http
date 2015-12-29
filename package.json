@@ -1,6 +1,6 @@
 {
   "name": "node-tiny-http",
-  "version": "1.2.13",
+  "version": "1.2.14",
   "description": "A tiny node.js http framework",
   "main": "build/http.js",
   "scripts": {
