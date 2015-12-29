@@ -47,12 +47,12 @@
   };
 
   register = function(method, pattern, fn) {
-    var functions, pushed, raw, tester;
+    var def, functions, pushed, raw, tester;
     tester = match(method, pattern);
     functions = [];
     pushed = false;
     raw = false;
-    return routes.push({
+    def = {
       get: function() {
         if (!pushed) {
           functions.push(fn);
@@ -80,7 +80,9 @@
         }
         return this;
       }
-    });
+    };
+    routes.push(def);
+    return def;
   };
 
   use = function() {

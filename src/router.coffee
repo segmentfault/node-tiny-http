@@ -44,7 +44,7 @@ register = (method, pattern, fn) ->
     pushed = no
     raw = no
 
-    routes.push
+    def =
         get: ->
             if not pushed
                 functions.push fn
@@ -62,6 +62,9 @@ register = (method, pattern, fn) ->
                 else
                     functions.push action
             @
+
+    routes.push def
+    def
 
 
 # register default functions
