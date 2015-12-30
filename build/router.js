@@ -10,7 +10,7 @@
   match = function(method, pattern) {
     var keys, r;
     keys = [];
-    pattern = pattern.replace(/(:|%)([_a-z0-9-]+)/i, function(m, prefix, name) {
+    pattern = pattern.replace(/(:|%)([_a-z0-9-]+)/ig, function(m, prefix, name) {
       keys.push(name);
       if (prefix === ':') {
         return '([^\\/]+)';

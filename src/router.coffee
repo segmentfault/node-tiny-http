@@ -7,7 +7,7 @@ match = (method, pattern) ->
     keys = []
 
     # replace as regex
-    pattern = pattern.replace /(:|%)([_a-z0-9-]+)/i, (m, prefix, name) ->
+    pattern = pattern.replace /(:|%)([_a-z0-9-]+)/ig, (m, prefix, name) ->
         keys.push name
         if prefix == ':' then '([^\\/]+)' else '(.+)'
 
