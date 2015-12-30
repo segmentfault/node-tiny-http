@@ -1,4 +1,6 @@
-var http = require('../build/http');
+var Http = require('../build/http');
+
+http = new Http;
 
 var interceptorOne = function (done, next) {
     this.response.header('ip', this.request.ip());
@@ -30,5 +32,5 @@ http.use(interceptorOne);
 
 http.assets('/src', __dirname + '/../src');
 
-http.start({ host : 'localhost', port : 9999 });
+http.listen({ host : 'localhost', port : 9999 });
 

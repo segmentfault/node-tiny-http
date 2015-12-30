@@ -19,13 +19,14 @@ npm install node-tiny-http
 通常我们用一个最简单的例子来展示框架的基本运行情况
 
 ```javascript
-var http = require('node-tiny-http');
+var Http = require('node-tiny-http'),
+    http = new Http;
 
 http.get('/', function (done) {
     return done('content', 'Hello World!');
 });
 
-http.start({ host : 'localhost', port : 9999 });
+http.listen({ host : 'localhost', port : 9999 });
 ```
 
 打开浏览器并访问<http://localhost:9999/>即可看到效果。

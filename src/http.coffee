@@ -1,11 +1,17 @@
-Http = require 'http'
+HttpServer = require 'http'
 Url = require 'url'
 Result = require './result'
 Router = require './router'
 
-module.exports =
-    start: (options) ->
-        http = Http.createServer Router.handler Result.result, options
+class Http
+    constructor: ->
+        @resultInstance = new Result
+        @routerInstance = new Router
+
+
+    # listen port
+    listen: (options) ->
+        http = HttpServer.createServer @routerInstance.handler @resultInstance.result, options
         
         if options.sock?
             http.listen options.sock
@@ -14,33 +20,38 @@ module.exports =
             options.host = options.host or 'localhost'
             http.listen options.port, options.host
 
-    
+
     # register result
-    result: Result.register
+    result: (args...) ->
+        @resultInstance.register.apply @resultInstance, args
 
 
-    # use default functions
-    use: Router.use
+    # use default interceptor
+    use: (args...) ->
+        @routerInstance.use.apply @routerInstance, args
 
     
     # on method
     on: (pattern, fn, method = null) ->
-        Router.register method, pattern, fn
+        @routerInstance.register method, pattern, fn
 
     
     # get method
     get: (pattern, fn) ->
-        Router.register 'GET', pattern, fn
+        @routerInstance.register 'GET', pattern, fn
 
     
     # post method
     post: (pattern, fn) ->
-        Router.register 'POST', pattern, fn
+        @routerInstance.register 'POST', pattern, fn
 
     
     # static file method
     assets: (path, dir) ->
-        Router.register 'GET', (path.replace /\/+$/g, '') + '/%path', (done) ->
+        @routerInstance.register 'GET', (path.replace /\/+$/g, '') + '/%path', (done) ->
             done 'file', dir + '/' + ((@request.get 'path').replace /\.{2,}/g, '')
         .raw()
+
+
+module.exports = Http
 

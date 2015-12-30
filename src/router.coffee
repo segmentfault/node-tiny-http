@@ -1,12 +1,5 @@
 Request = require './request'
 Response = require './response'
-Result = require './result'
-
-# routes map
-routes = []
-
-# default functions
-defaults = []
 
 
 # create match uri pattern
@@ -37,107 +30,117 @@ match = (method, pattern) ->
         no
 
 
-# register routes
-register = (method, pattern, fn) ->
-    tester = match method, pattern
-    functions = []
-    pushed = no
-    raw = no
+class Router
 
-    def =
-        get: ->
-            if not pushed
-                functions.push fn
-                pushed = yes
+    constructor: ->
+        # routes map
+        @routes = []
 
-            [tester, functions, raw]
-        raw: ->
-            raw = yes
-            @
-        use: (actions...) ->
-            for action in actions
-                if action instanceof Array
-                    for item in action
-                        functions.push item
-                else
-                    functions.push action
-            @
-
-    routes.push def
-    def
+        # default functions
+        @defaults = []
 
 
-# register default functions
-use = (actions...) ->
-    for action in actions
-        if action instanceof Array
-            for item in action
-                defaults.push item
-        else
-            defaults.push action
+    # register routes
+    register: (method, pattern, fn) ->
+        tester = match method, pattern
+        functions = []
+        pushed = no
+        raw = no
 
+        def =
+            get: ->
+                if not pushed
+                    functions.push fn
+                    pushed = yes
 
-# handler for http
-handler = (result, options) ->
-
-    (req, res) ->
-        
-        response = new Response res, options
-
-        new Request req, options, (request) ->
-            context = { request, response }
-            callbacks = []
-            returned = no
-            index = -1
-            resultArgs = null
-            next = null
-
-            respond = ->
-                [name, args] = resultArgs
-                result[name].apply null, args
-                    .call null, request, response
-                response.respond() if not response.responded
-
-            done = (name, args...) ->
-                return if returned
-                returned = yes
-                index = callbacks.length
-                name = 'blank' if not result[name]?
-                resultArgs = [name, args]
-                
-                if next then next() else respond()
-
-            for def in routes
-                [tester, functions, raw] = def.get()
-                params = {}
-
-                # deny not matched
-                continue if not tester request.method, request.path, params
-                request.set params
-
-                do next = (callback = null) ->
-                    if returned
-                        index -= 1
-
-                        if index >= 0
-                            callbacks[index].apply context, resultArgs
-                        else
-                            respond()
+                [tester, functions, raw]
+            raw: ->
+                raw = yes
+                @
+            use: (actions...) ->
+                for action in actions
+                    if action instanceof Array
+                        for item in action
+                            functions.push item
                     else
-                        callbacks.push callback if callback?
-                        index += 1
+                        functions.push action
+                @
 
-                        if raw
-                            fn = functions[index]
+        @routes.push def
+        def
+
+
+    # register default functions
+    use: (actions...) ->
+        for action in actions
+            if action instanceof Array
+                for item in action
+                    @defaults.push item
+            else
+                @defaults.push action
+
+
+    # handler for http
+    handler: (result, options) ->
+
+        (req, res) =>
+        
+            response = new Response res, options
+
+            new Request req, options, (request) =>
+                context = { request, response }
+                callbacks = []
+                returned = no
+                index = -1
+                resultArgs = null
+                next = null
+
+                respond = ->
+                    [name, args] = resultArgs
+                    result[name].apply null, args
+                        .call null, request, response
+                    response.respond() if not response.responded
+
+                done = (name, args...) ->
+                    return if returned
+                    returned = yes
+                    index = callbacks.length
+                    name = 'blank' if not result[name]?
+                    resultArgs = [name, args]
+                
+                    if next then next() else respond()
+
+                for def in @routes
+                    [tester, functions, raw] = def.get()
+                    params = {}
+
+                    # deny not matched
+                    continue if not tester request.method, request.path, params
+                    request.set params
+
+                    do next = (callback = null) =>
+                        if returned
+                            index -= 1
+
+                            if index >= 0
+                                callbacks[index].apply context, resultArgs
+                            else
+                                respond()
                         else
-                            fn = if index >= defaults.length then functions[index - defaults.length] else defaults[index]
+                            callbacks.push callback if callback?
+                            index += 1
 
-                        fn.call context, done, next if fn?
+                            if raw
+                                fn = functions[index]
+                            else
+                                fn = if index >= @defaults.length then functions[index - @defaults.length] else @defaults[index]
 
-                return
+                            fn.call context, done, next if fn?
 
-            done 'notFound'
+                    return
+
+                done 'notFound'
 
 
-module.exports = { register, handler, use }
+module.exports = Router
 
