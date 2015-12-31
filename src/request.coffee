@@ -22,6 +22,7 @@ class Request
         @path = if parts.pathname? then parts.pathname else '/'
         @port = @req.socket.remotePort
         @agent = @header 'user-agent', ''
+        @httpVersion = @req.httpVersion
 
         # detect host
         host = @header 'host', ''

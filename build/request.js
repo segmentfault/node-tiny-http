@@ -35,6 +35,7 @@
       this.path = parts.pathname != null ? parts.pathname : '/';
       this.port = this.req.socket.remotePort;
       this.agent = this.header('user-agent', '');
+      this.httpVersion = this.req.httpVersion;
       host = this.header('host', '');
       matched = host.match(/^\s*([_0-9a-z-\.]+)/);
       this.host = matched ? matched[1] : null;
