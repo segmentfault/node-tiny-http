@@ -1,6 +1,19 @@
 Cookie = require 'cookie'
 Status = require 'statuses'
 
+
+# make a monkey patch for original response object
+patchOriginalResponse = (res) ->
+    originalWrite = res.write
+    res.bytes = 0
+
+    res.write = (args...) ->
+        buf = args[0]
+        @bytes += buf.length
+
+        originalWrite.apply @, args
+
+
 class Response
 
     options = {}
@@ -16,6 +29,8 @@ class Response
 
         options = opt
         @responded = no
+
+        patchOriginalResponse @res
 
 
     # set content
@@ -41,6 +56,12 @@ class Response
         key = key.toLowerCase()
         @$headers[key] = val
         @
+
+
+    # set finish
+    finish: (@finish) ->
+        @res.on 'finish', =>
+            @finish.call @, @res.statusCode, @res.bytes
 
     
     # respond
