@@ -19,10 +19,10 @@ class Result
                         .respond()
 
                 mime = Mime.lookup file
+                stream = Fs.createReadStream file
+                
                 @response.header 'content-type', mime + '; charset=utf-8'
-                    .content ->
-                        stream = Fs.createReadStream file
-                        stream.pipe @res
+                    .content stream
                     .respond()
 
         # blank content

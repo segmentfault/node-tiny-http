@@ -14,16 +14,13 @@
         this.response.responded = true;
         return Fs.access(file, Fs.R_OK, (function(_this) {
           return function(err) {
-            var mime;
+            var mime, stream;
             if (err != null) {
               return _this.response.status(404).content('File not found.').respond();
             }
             mime = Mime.lookup(file);
-            return _this.response.header('content-type', mime + '; charset=utf-8').content(function() {
-              var stream;
-              stream = Fs.createReadStream(file);
-              return stream.pipe(this.res);
-            }).respond();
+            stream = Fs.createReadStream(file);
+            return _this.response.header('content-type', mime + '; charset=utf-8').content(stream).respond();
           };
         })(this));
       });

@@ -1,5 +1,7 @@
 Cookie = require 'cookie'
 Status = require 'statuses'
+Zlib = require 'zlib'
+Stream = require 'stream'
 
 
 # make a monkey patch for original response object
@@ -19,18 +21,31 @@ class Response
     options = {}
 
 
-    constructor: (@res, opt) ->
+    constructor: (@res, req, opt) ->
 
         @$statusCode = 200
         @$headers =
             'content-type': 'text/html; charset=utf-8'
         @$cookies = []
-        @$content = null
         @$startTime = Date.now()
+        @$stream = null
+        @$content = null
 
         options = opt
         @responded = no
 
+        if opt.compression
+            acceptEncoding = req.headers['accept-encoding']
+
+            if acceptEncoding?
+                if acceptEncoding.match /\bdeflate\b/
+                    @$stream = Zlib.createDeflate()
+                    @$headers['content-encoding'] = 'deflate'
+                else if acceptEncoding.match /\bgzip\b/
+                    @$stream = Zlib.createGzip()
+                    @$headers['content-encoding'] = 'gzip'
+
+        @$stream = new Stream.PassThrough if not @$stream?
         patchOriginalResponse @res
 
 
@@ -39,7 +54,7 @@ class Response
         @$content = val
         @
 
-    
+
     # set status code
     status: (code) ->
         @$statusCode = Status code
@@ -78,11 +93,12 @@ class Response
             @res.setHeader key, val
 
         @res.setHeader 'Set-Cookie', @$cookies if @$cookies.length > 0
-        
-        if @$content instanceof Function
-            @$content.apply @
+        @$stream.pipe @res
+
+        if @$content instanceof Stream.Readable
+            @$content.pipe @$stream
         else
-            @res.end @$content
+            @$stream.end @$content
 
 
 module.exports = Response

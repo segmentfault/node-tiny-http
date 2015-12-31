@@ -36,5 +36,5 @@ http.use(interceptorOne);
 
 http.assets('/src', __dirname + '/../src');
 
-http.listen({ host : 'localhost', port : 9999 });
+http.listen({ host : 'localhost', port : 9999, compression : true });
 

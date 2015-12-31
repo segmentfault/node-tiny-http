@@ -112,7 +112,7 @@
       return (function(_this) {
         return function(req, res) {
           var response;
-          response = new Response(res, options);
+          response = new Response(res, req, options);
           return new Request(req, options, function(request) {
             var callbacks, context, def, done, functions, index, j, len, next, params, raw, ref, ref1, respond, resultArgs, returned, tester;
             context = {

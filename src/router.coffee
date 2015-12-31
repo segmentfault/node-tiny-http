@@ -85,7 +85,7 @@ class Router
 
         (req, res) =>
         
-            response = new Response res, options
+            response = new Response res, req, options
 
             new Request req, options, (request) =>
                 context = { request, response }
