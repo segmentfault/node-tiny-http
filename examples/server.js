@@ -6,8 +6,8 @@ var interceptorOne = function (done, next) {
     this.response.header('ip', this.request.ip());
     this.text = '123';
 
-    this.response.finish(function (code, length) {
-        console.log(code, length);
+    this.response.finish(function (code, length, time) {
+        console.log(code, length, time);
     });
 
     next(function (name, args) {

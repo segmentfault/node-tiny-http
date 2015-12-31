@@ -33,6 +33,7 @@
       };
       this.$cookies = [];
       this.$content = null;
+      this.$startTime = Date.now();
       options = opt;
       this.responded = false;
       patchOriginalResponse(this.res);
@@ -63,7 +64,7 @@
       this.finish = finish;
       return this.res.on('finish', (function(_this) {
         return function() {
-          return _this.finish.call(_this, _this.res.statusCode, _this.res.bytes);
+          return _this.finish.call(_this, _this.res.statusCode, _this.res.bytes, Date.now() - _this.$startTime);
         };
       })(this));
     };

@@ -26,6 +26,7 @@ class Response
             'content-type': 'text/html; charset=utf-8'
         @$cookies = []
         @$content = null
+        @$startTime = Date.now()
 
         options = opt
         @responded = no
@@ -61,7 +62,7 @@ class Response
     # set finish
     finish: (@finish) ->
         @res.on 'finish', =>
-            @finish.call @, @res.statusCode, @res.bytes
+            @finish.call @, @res.statusCode, @res.bytes, Date.now() - @$startTime
 
     
     # respond
