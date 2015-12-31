@@ -49,7 +49,13 @@ class Http
     # static file method
     assets: (path, dir) ->
         @routerInstance.register 'GET', (path.replace /\/+$/g, '') + '/%path', (done) ->
-            done 'file', dir + '/' + ((@request.get 'path').replace /\.{2,}/g, '')
+            parts = []
+            path = @request.get 'path'
+
+            for val in path.split '/'
+                parts.push val if not val.match /^\.+$/
+
+            done 'file', dir + '/' + (parts.join '/')
         .raw()
 
 

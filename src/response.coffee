@@ -18,10 +18,8 @@ patchOriginalResponse = (res) ->
 
 class Response
 
-    options = {}
 
-
-    constructor: (@res, req, opt) ->
+    constructor: (@res, req, @options) ->
 
         @$statusCode = 200
         @$headers =
@@ -31,10 +29,9 @@ class Response
         @$stream = null
         @$content = null
 
-        options = opt
         @responded = no
 
-        if opt.compression
+        if @options.compression
             acceptEncoding = req.headers['accept-encoding']
 
             if acceptEncoding?
