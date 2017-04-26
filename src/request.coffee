@@ -23,6 +23,7 @@ class Request
         @port = @req.socket.remotePort
         @agent = @header 'user-agent', ''
         @httpVersion = @req.httpVersion
+        @body = null
 
         # detect host
         host = @header 'host', ''
@@ -35,14 +36,26 @@ class Request
         @$ip = null
         
         if @method is 'POST'
-            form = new Form.IncomingForm
+            contentType = @header 'content-type'
 
-            form.parse @req, (err, fields, files) =>
-                return cb @ if err?
+            if contentType.match /^\s*(application\/x\-www\-form\-urlencoded|multipart\/form\-data)/i
+                form = new Form.IncomingForm
 
-                mergeParams @$params, fields
-                @$files = files
-                cb @
+                form.parse @req, (err, fields, files) =>
+                    return cb @ if err?
+
+                    mergeParams @$params, fields
+                    @$files = files
+                    cb @
+            else
+                body = []
+                @req.on 'data', (chunk) ->
+                    body.push chunk
+                .on 'end', =>
+                    @body = (Buffer.concat body).toString()
+                    cb @
+                .on 'error', =>
+                    cb @
         else
             cb @
 

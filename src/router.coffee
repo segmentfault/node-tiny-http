@@ -135,7 +135,9 @@ class Router
                             else
                                 fn = if index >= @defaults.length then functions[index - @defaults.length] else @defaults[index]
 
-                            fn.call context, done, next if fn?
+                            if fn?
+                                res = fn.call context, done, next
+                                res.then() if res? and Promise? and res instanceof Promise
 
                     return
 
