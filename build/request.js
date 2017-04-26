@@ -11,9 +11,7 @@
   QueryString = require('querystring');
 
   Request = (function() {
-    var mergeParams, options;
-
-    options = {};
+    var mergeParams;
 
     mergeParams = function(source, target) {
       var k, results, v;
@@ -25,11 +23,11 @@
       return results;
     };
 
-    function Request(req, opt, cb) {
+    function Request(req, options, cb) {
       var body, contentType, form, host, matched, parts;
       this.req = req;
+      this.options = options;
       parts = Url.parse(this.req.url, true);
-      options = opt;
       this.method = this.req.method.toUpperCase();
       this.uri = parts.href;
       this.path = parts.pathname != null ? parts.pathname : '/';
@@ -82,9 +80,10 @@
       var defaults, i, key, len, val;
       defaults = ['x-real-ip', 'x-forwarded-for', 'client-ip'];
       if (this.$ip == null) {
-        if (options.ipHeader != null) {
-          this.$ip = this.header(options.ipHeader, this.req.socket.remoteAddress);
+        if (this.options.ipHeader != null) {
+          this.$ip = this.header(this.options.ipHeader, this.req.socket.remoteAddress);
         } else {
+          this.$ip = this.req.socket.remoteAddress;
           for (i = 0, len = defaults.length; i < len; i++) {
             key = defaults[i];
             val = this.header(key);
@@ -93,7 +92,6 @@
               break;
             }
           }
-          this.$ip = this.req.socket.remoteAddress;
         }
       }
       return this.$ip;

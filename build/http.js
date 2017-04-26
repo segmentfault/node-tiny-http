@@ -58,7 +58,17 @@
 
     Http.prototype.assets = function(path, dir) {
       return this.routerInstance.register('GET', (path.replace(/\/+$/g, '')) + '/%path', function(done) {
-        return done('file', dir + '/' + ((this.request.get('path')).replace(/\.{2,}/g, '')));
+        var i, len, parts, ref, val;
+        parts = [];
+        path = this.request.get('path');
+        ref = path.split('/');
+        for (i = 0, len = ref.length; i < len; i++) {
+          val = ref[i];
+          if (!val.match(/^\.+$/)) {
+            parts.push(val);
+          }
+        }
+        return done('file', dir + '/' + (parts.join('/')));
       }).raw();
     };
 

@@ -6,16 +6,13 @@ QueryString = require 'querystring'
 
 class Request
 
-    options = {}
-
     mergeParams = (source, target) ->
         for k, v of target
             source[k] = v
 
 
-    constructor: (@req, opt, cb) ->
+    constructor: (@req, @options, cb) ->
         parts = Url.parse @req.url, yes
-        options = opt
 
         @method = @req.method.toUpperCase()
         @uri = parts.href
@@ -64,17 +61,17 @@ class Request
         defaults = ['x-real-ip', 'x-forwarded-for', 'client-ip']
 
         if not @$ip?
-            if options.ipHeader?
-                @$ip = @header options.ipHeader, @req.socket.remoteAddress
+            if @options.ipHeader?
+                @$ip = @header @options.ipHeader, @req.socket.remoteAddress
             else
+                @$ip = @req.socket.remoteAddress
+
                 for key in defaults
                     val = @header key
 
                     if val?
                         @$ip = val
                         break
-
-                @$ip = @req.socket.remoteAddress
 
         @$ip
 

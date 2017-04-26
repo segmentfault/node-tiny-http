@@ -25,13 +25,10 @@
   };
 
   Response = (function() {
-    var options;
-
-    options = {};
-
-    function Response(res1, req, opt) {
+    function Response(res1, req, options1) {
       var acceptEncoding;
       this.res = res1;
+      this.options = options1;
       this.$statusCode = 200;
       this.$headers = {
         'content-type': 'text/html; charset=utf-8'
@@ -40,9 +37,8 @@
       this.$startTime = Date.now();
       this.$stream = null;
       this.$content = null;
-      options = opt;
       this.responded = false;
-      if (opt.compression) {
+      if (this.options.compression) {
         acceptEncoding = req.headers['accept-encoding'];
         if (acceptEncoding != null) {
           if (acceptEncoding.match(/\bdeflate\b/)) {
