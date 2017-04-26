@@ -179,10 +179,7 @@
                     fn = index >= _this.defaults.length ? functions[index - _this.defaults.length] : _this.defaults[index];
                   }
                   if (fn != null) {
-                    res = fn.call(context, done, next);
-                    if ((res != null) && (typeof Promise !== "undefined" && Promise !== null) && res instanceof Promise) {
-                      return res.then();
-                    }
+                    return res = fn.call(context, done, next);
                   }
                 }
               })(null);

@@ -137,7 +137,6 @@ class Router
 
                             if fn?
                                 res = fn.call context, done, next
-                                res.then() if res? and Promise? and res instanceof Promise
 
                     return
 
