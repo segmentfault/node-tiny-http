@@ -9,7 +9,7 @@ class Result
 
         # some default result
         # handler static file
-        @register 'file', (file) ->
+        @register 'file', (file, mime = null) ->
             @response.responded = yes
 
             Fs.access file, Fs.R_OK, (err) =>
@@ -18,7 +18,7 @@ class Result
                         .content 'File not found.'
                         .respond()
 
-                mime = Mime.lookup file
+                mime = Mime.lookup file if not mime?
                 stream = Fs.createReadStream file
                 
                 @response.header 'content-type', mime + '; charset=utf-8'

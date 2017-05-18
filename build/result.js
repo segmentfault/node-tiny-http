@@ -10,15 +10,20 @@
   Result = (function() {
     function Result() {
       this.result = {};
-      this.register('file', function(file) {
+      this.register('file', function(file, mime) {
+        if (mime == null) {
+          mime = null;
+        }
         this.response.responded = true;
         return Fs.access(file, Fs.R_OK, (function(_this) {
           return function(err) {
-            var mime, stream;
+            var stream;
             if (err != null) {
               return _this.response.status(404).content('File not found.').respond();
             }
-            mime = Mime.lookup(file);
+            if (mime == null) {
+              mime = Mime.lookup(file);
+            }
             stream = Fs.createReadStream(file);
             return _this.response.header('content-type', mime + '; charset=utf-8').content(stream).respond();
           };
