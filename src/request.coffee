@@ -33,7 +33,7 @@ class Request
         @$ip = null
         
         if @method is 'POST'
-            contentType = @header 'content-type'
+            contentType = @header 'content-type', ''
 
             if contentType.match /^\s*(application\/x\-www\-form\-urlencoded|multipart\/form\-data)/i
                 form = new Form.IncomingForm
